@@ -3,33 +3,42 @@ kind: ServingTemplate
 metadata:
   name: ollama
   annotations:
-    scenarios.ai.sap.com/description: Run an Ollama server on SAP AI Core
-    scenarios.ai.sap.com/name: ollama
-    executables.ai.sap.com/description: Ollama service
-    executables.ai.sap.com/name: ollama
+    scenarios.ai.sap.com/description: "Run an Ollama server on SAP AI Core"
+    scenarios.ai.sap.com/name: "ollama"
+    executables.ai.sap.com/description: "Ollama service"
+    executables.ai.sap.com/name: "ollama"
   labels:
-    scenarios.ai.sap.com/id: ollama
-    ai.sap.com/version: 0.0.1
+    scenarios.ai.sap.com/id: "ollama"
+    ai.sap.com/version: "0.0.1"
 spec:
-  template: |
-    apiVersion: serving.kserve.io/v1beta1
-    kind: InferenceService
+  inputs:
+    parameters:
+      - name: modelName
+        default: "phi3:14b"
+        type: string
+        description: "Model Name to be used for inference with SAP Generative AI Hub SDK"
+      - name: resourcePlan
+        type: string
+        default: "infer.s"
+        description: "Resource Plan of SAP AI Core. Supported: infer.s, infer.m, infer.l, train.l"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
     metadata:
-      annotations:
-        autoscaling.knative.dev/metric: "concurrency"
-        autoscaling.knative.dev/target: "1"
-        autoscaling.knative.dev/targetBurstCapacity: "0"
-      labels:
-        ai.sap.com/resourcePlan: "infer.s"
-    spec:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+        autoscaling.knative.dev/targetBurstCapacity: 0
+      labels: |
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
+    spec: |
       predictor:
         imagePullSecrets:
-          - name: dckr_pat_g6R_B5Dg1pPsjMiECeb9NwNMbj8
+        - name: dckr_pat_g6R_B5Dg1pPsjMiECeb9NwNMbj8
         minReplicas: 1
         maxReplicas: 1
         containers:
-          - name: kserve-container
-            image: ollama/ollama
-            ports:
-              - containerPort: 8080
-                protocol: TCP
+        - name: kserve-container
+          image: ollama/ollama
+          ports:
+            - containerPort: 8080
+              protocol: TCP
